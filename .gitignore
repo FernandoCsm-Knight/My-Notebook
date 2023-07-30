@@ -396,3 +396,14 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# IDE specific files
+.idea/
+.dart_tool/
+
+# Flutter Firestore Plugin
+my_notebook/lib/firebase_options.dart
+
+# Build generated
+my_notebook/build/
+my_notebook/android/key.properties
