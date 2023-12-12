@@ -31,6 +31,8 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      await _auth.currentUser!.updateDisplayName(name);
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'weak-password':
@@ -75,7 +77,7 @@ class AuthService {
         email: _auth.currentUser!.email!,
         password: password,
       );
-
+  
       await _auth.currentUser!.delete();
     } on FirebaseAuthException catch (e) {
       return e.code;

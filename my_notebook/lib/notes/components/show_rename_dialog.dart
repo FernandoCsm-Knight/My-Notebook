@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:my_notebook/notes/services/note_local_service.dart';
+import 'package:my_notebook/settings/model/AppSettings.dart';
 
 import '../model/note.dart';
 import '../services/note_service.dart';
@@ -6,6 +8,8 @@ import '../services/note_service.dart';
 Future<String?> showRenameDialog({
   required BuildContext context,
   required NoteService noteService,
+  required NoteLocalService noteLocalService,
+  required AppSettings settings,
   required Note note,
 }) {
   return showDialog<String>(
@@ -55,13 +59,26 @@ Future<String?> showRenameDialog({
                     child: const Text('Cancel'),
                   ),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (formKey.currentState!.validate()) {
-                        noteService.updateTitle(
-                          id: note.id,
-                          title: titleController.text.trim(),
-                        );
 
+                        if(settings.onlySaveLocal) {
+                          await noteLocalService.updateTitle(
+                            id: note.id,
+                            title: titleController.text.trim(),
+                          );
+                        } else {
+                          await noteService.updateTitle(
+                            id: note.id,
+                            title: titleController.text.trim(),
+                          );
+
+                          await noteLocalService.updateTitle(
+                            id: note.id,
+                            title: titleController.text.trim(),
+                          );
+                        }
+                        
                         Navigator.pop(context, titleController.text.trim());
                       }
                     },

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:my_notebook/notes/services/note_service.dart';
 
 import '../model/note.dart';
 
-void showDeleteDialog({
+Future<bool?> showDeleteDialog({
   required BuildContext context,
   required Note note,
-  required Future<void> Function() refreshFunction,
-  required NoteService noteService,
 }) {
-  showDialog<bool>(
+  return showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -42,22 +39,5 @@ void showDeleteDialog({
             ],
           ),
         );
-      }).then(
-    (value) async {
-      if (value != null && value) {
-        noteService.deleteNote(id: note.id).then((value) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text(
-            'Note deleted.',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
-            ),
-          )));
-        });
-      }
-
-      refreshFunction();
-    },
-  );
+      });
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:my_notebook/notes/components/show_rename_dialog.dart';
+import 'package:my_notebook/notes/services/note_local_service.dart';
 import 'package:my_notebook/notes/services/note_service.dart';
+import 'package:my_notebook/settings/service/SettingsProvider.dart';
 
 import '../model/note.dart';
 
@@ -16,9 +18,11 @@ class _NoteScreenState extends State<NoteScreen> {
   @override
   Widget build(BuildContext context) {
     final NoteService noteService = NoteService();
+    final NoteLocalService noteLocalService = NoteLocalService();
     final TextEditingController noteController =
         TextEditingController(text: widget.note.note);
     final String lastChange = widget.note.note;
+    final SettingsProvider settingsProvider = SettingsProvider();
 
     return Scaffold(
       appBar: AppBar(
@@ -45,12 +49,14 @@ class _NoteScreenState extends State<NoteScreen> {
                 ),
               ];
             },
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'rename') {
                 showRenameDialog(
                   context: context,
                   note: widget.note,
                   noteService: noteService,
+                  noteLocalService: noteLocalService,
+                  settings: settingsProvider.settings,
                 ).then(
                   (value) {
                     if (value != null && value.isNotEmpty) {
@@ -61,7 +67,13 @@ class _NoteScreenState extends State<NoteScreen> {
                   },
                 );
               } else if (value == 'delete') {
-                noteService.deleteNote(id: widget.note.id);
+                if (settingsProvider.settings.onlySaveLocal) {
+                  await noteLocalService.deleteNote(id: widget.note.id);
+                } else {
+                  await noteService.deleteNote(id: widget.note.id);
+                  await noteLocalService.deleteNote(id: widget.note.id);
+                }
+
                 Navigator.pop(context);
               }
             },
@@ -99,11 +111,17 @@ class _NoteScreenState extends State<NoteScreen> {
                   Row(
                     children: [
                       TextButton(
-                        onPressed: () {
-                          noteService.updateNote(
-                            id: widget.note.id,
-                            note: lastChange,
-                          );
+                        onPressed: () async {
+                          if (settingsProvider.settings.onlySaveLocal) {
+                            await noteLocalService.updateNote(
+                                id: widget.note.id, note: lastChange);
+                          } else {
+                            await noteService.updateNote(
+                                id: widget.note.id, note: lastChange);
+
+                            await noteLocalService.updateNote(
+                                id: widget.note.id, note: lastChange);
+                          }
 
                           Navigator.pop(context, '');
                         },

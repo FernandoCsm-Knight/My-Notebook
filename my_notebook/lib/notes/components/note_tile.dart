@@ -19,7 +19,10 @@ class NoteTile extends StatelessWidget {
         onTap: onTap,
         leading: const Icon(Icons.book),
         title: Text(note.title),
-        titleTextStyle: const TextStyle(fontSize: 18.0),
+        titleTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontSize: 20.0,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         minVerticalPadding: 25,
       ),

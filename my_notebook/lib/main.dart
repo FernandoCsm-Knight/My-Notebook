@@ -2,8 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:my_notebook/authentication/screens/login_screen.dart';
+import 'package:my_notebook/settings/service/SettingsProvider.dart';
 import 'firebase_options.dart';
-import 'notes/screens/home_screen.dart';
+import 'home/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,25 +12,34 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  SettingsProvider settingsProvider = SettingsProvider();
+  await settingsProvider.loadSettings();
+  MyNotebook.themeNotifier.value = settingsProvider.settings.darkThemeEnabled ? ThemeMode.dark : ThemeMode.light;
+
   runApp(const MyNotebook());
 }
 
 class MyNotebook extends StatelessWidget {
+  static final ValueNotifier<ThemeMode> themeNotifier =
+      ValueNotifier(ThemeMode.light);
+
   const MyNotebook({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'My Notebook',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
-        primarySwatch: Colors.blue,
-        primaryColor: Colors.blue,
-        useMaterial3: true,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: const ScreenReplacer(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, currentTheme, __) {
+        return MaterialApp(
+          title: 'My Notebook',
+          theme: ThemeData.light(useMaterial3: true),
+          darkTheme: ThemeData.dark(useMaterial3: true),
+          themeMode: currentTheme,
+          debugShowCheckedModeBanner: false,
+          home: const ScreenReplacer(),
+        );
+      }
     );
   }
 }
@@ -47,9 +57,12 @@ class ScreenReplacer extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
         }
-        
+
         if (snapshot.hasData) {
-          return HomeScreen(user: snapshot.data!,);
+          return HomeScreen(
+            user: snapshot.data!,
+
+          );
         } else {
           return const LoginScreen();
         }

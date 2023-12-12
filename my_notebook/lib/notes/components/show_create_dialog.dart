@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:my_notebook/notes/services/note_local_service.dart';
 import 'package:my_notebook/notes/services/note_service.dart';
+import 'package:my_notebook/settings/model/AppSettings.dart';
+import 'package:uuid/uuid.dart';
 
-void showCreateDialog({
+Future<T?> showCreateDialog<T>({
   required BuildContext context,
   required Future<void> Function() refreshFunction,
   required NoteService noteService,
+  required NoteLocalService noteLocalService,
+  required AppSettings settings,
 }) {
   final formKey = GlobalKey<FormState>();
-  showDialog(
+  return showDialog<T>(
     context: context,
     builder: (context) {
       TextEditingController titleController = TextEditingController();
@@ -57,11 +62,19 @@ void showCreateDialog({
                               onPressed: () => Navigator.pop(context),
                               child: const Text('Cancel')),
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if(formKey.currentState!.validate()) {
-                                noteService.createNote(title: titleController.text);
+                                String uuid = Uuid().v1();
+
+                                if(settings.onlySaveLocal) {
+                                  await noteLocalService.createNote(uuid: uuid, title: titleController.text);
+                                } else {
+                                  await noteService.createNote(uuid: uuid, title: titleController.text);
+                                  await noteLocalService.createNote(uuid: uuid, title: titleController.text);
+                                }
+
                                 Navigator.pop(context);
-                                refreshFunction();
+                                await refreshFunction();
                               }
                             },
                             child: const Text('Create'),
